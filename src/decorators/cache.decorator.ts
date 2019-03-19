@@ -1,9 +1,7 @@
 import { AnyresCRUD, IResCreate, IResGet, IResQuery, IResQueryResult, IResUpdate } from "@anyres/core";
-import { from, of } from "rxjs";
-import { map, switchMap } from "rxjs/operators";
-import { ICache, ICacheParams } from "../interfaces";
+import { ICacheParams } from "../interfaces";
 
-export function Cache({ store, expired = 0 }: ICacheParams) {
+export function Cache({ store, expire = 0 }: ICacheParams) {
   return <
     TQ extends IResQuery,
     TQR extends IResQueryResult,
@@ -15,31 +13,9 @@ export function Cache({ store, expired = 0 }: ICacheParams) {
     }
   >(target: T) => {
     return class CacheAnyresCRUD extends target {
-      public store = store;
       public get(id: number | string) {
         const key = `${target.prototype.path}/${id}`;
-        return from(this.store.getItem<ICache<TG>>(key))
-          .pipe(
-            switchMap((item) => {
-              if (item) {
-                if (item.e > (new Date()).getTime() || item.e === 0) {
-                  return of(item.v);
-                }
-              }
-              return super.get(id)
-                .pipe(
-                  switchMap((v) => {
-                    return from(this.store.setItem<ICache<TG>>(key, {
-                      v,
-                      e: expired,
-                    }));
-                  }),
-                  map((newItem) => {
-                    return newItem.v;
-                  }),
-                );
-            }),
-          );
+        return store.get<TG>(key, super.get(id), expire);
       }
     };
   };

@@ -1,7 +1,6 @@
-import * as localForage from "localforage";
-import { ICacheStore } from "./cache.interface";
+import { CacheStore } from "../stores";
 
 export interface ICacheParams {
-  store: ICacheStore;
-  expired?: number;
+  store: CacheStore;
+  expire?: number;
 }

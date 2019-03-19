@@ -10,6 +10,7 @@ import * as localForage from "localforage";
 import { Observable, of as observableOf } from "rxjs";
 import { Cache, CustomCache } from "../decorators";
 import { ICache } from "../interfaces";
+import { CacheStore } from "../stores";
 
 class MockHttpAdapter implements IHttpAdapter {
   public get(url: string, options?: IAnyresRequestOptions): Observable<IAnyresResponse> {
@@ -112,9 +113,10 @@ localForage.config({
   storeName: "keyvaluepairs", // Should be alphanumeric, with underscores.
   description: "some description",
 });
+const cacheStore = new CacheStore(localForage);
 // tslint:disable-next-line:max-classes-per-file
 @Cache({
-  store: localForage,
+  store: cacheStore,
 })
 @Anyres({
   path: "http://localhost:3000/posts",
@@ -132,7 +134,7 @@ IPostUpdate
 > {
   @CustomCache({
     getKey: (id: number) => `${id}`,
-    store: localForage,
+    store: cacheStore,
   })
   public customMethod(id: number) {
     return this.get(id);
@@ -162,6 +164,18 @@ describe("test MockAdapter", () => {
     }).then((data) => {
       expect(data.id).toBe(1);
       expect(data.title).toBe("title");
+      localForage.iterate((value, key, iterationNumber) => {
+        //
+      }).then((x) => {
+        expect(x).toBe(undefined);
+      });
+      localForage.iterate((value, key, iterationNumber) => {
+        if (iterationNumber === 0) {
+          return [key, value];
+        }
+      }).then((x) => {
+        expect(x[0]).toBe("1");
+      });
     });
   });
 });

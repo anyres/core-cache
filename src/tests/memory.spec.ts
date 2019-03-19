@@ -6,11 +6,10 @@ import {
   IAnyresResponse,
   IHttpAdapter,
 } from "@anyres/core";
-import * as localForage from "localforage";
 import { Observable, of as observableOf } from "rxjs";
 import { Cache, CustomCache } from "../decorators";
 import { ICache } from "../interfaces";
-import { MemoryStore } from "../stores";
+import { CacheStore, MemoryStore } from "../stores";
 
 class MockHttpAdapter implements IHttpAdapter {
   public get(url: string, options?: IAnyresRequestOptions): Observable<IAnyresResponse> {
@@ -101,22 +100,11 @@ export interface IPostUpdate {
   title?: string;
 }
 
-localForage.config({
-  driver: [
-    localForage.INDEXEDDB,
-    localForage.WEBSQL,
-    localForage.LOCALSTORAGE,
-  ], // Force WebSQL; same as using setDriver()
-  name: "myApp",
-  version: 1.0,
-  size: 4980736, // Size of database, in bytes. WebSQL-only for now.
-  storeName: "keyvaluepairs", // Should be alphanumeric, with underscores.
-  description: "some description",
-});
 const store = new MemoryStore();
+const cacheStore = new CacheStore(store);
 // tslint:disable-next-line:max-classes-per-file
 @Cache({
-  store,
+  store: cacheStore,
 })
 @Anyres({
   path: "http://localhost:3000/posts",
@@ -134,7 +122,7 @@ IPostUpdate
 > {
   @CustomCache({
     getKey: (id: number) => `${id}`,
-    store: localForage,
+    store: cacheStore,
   })
   public customMethod(id: number) {
     return this.get(id);
@@ -157,13 +145,25 @@ describe("test MockAdapter", () => {
     return testRes.customMethod(1).toPromise().then((data) => {
       expect(data.id).toBe(1);
       expect(data.title).toBe("title");
-      return localForage.getItem<ICache<IPostGet>>("1");
+      return store.getItem<ICache<IPostGet>>("1");
     }).then((item) => {
       expect(item.v.id).toBe(1);
       return testRes.customMethod(1).toPromise();
     }).then((data) => {
       expect(data.id).toBe(1);
       expect(data.title).toBe("title");
+      store.iterate((value, key, iterationNumber) => {
+        //
+      }).then((x) => {
+        expect(x).toBe(undefined);
+      });
+      store.iterate((value, key, iterationNumber) => {
+        if (iterationNumber === 0) {
+          return [key, value];
+        }
+      }).then((x) => {
+        expect(x[0]).toBe("1");
+      });
     });
   });
 });
