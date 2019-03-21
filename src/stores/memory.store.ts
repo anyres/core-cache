@@ -39,4 +39,7 @@ export class MemoryStore implements ICacheStore {
     }
     return of(result).toPromise();
   }
+  public has(key: string) {
+    return of(this.store.has(key)).toPromise();
+  }
 }

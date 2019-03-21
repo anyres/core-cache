@@ -17,4 +17,18 @@ export interface ICacheStore {
   keys(): Promise<string[]>;
 
   iterate<T, U>(iteratee: (value: T, key: string, iterationNumber: number) => U): Promise<U>;
+
+  has?(key: string): Promise<boolean>;
+}
+
+export enum CacheNotifyTypeEnum {
+  Init = "init",
+  Set = "set",
+  Remove = "remove",
+  Expire = "expire",
+}
+
+export interface ICacheNotifyResult<T> {
+  type: CacheNotifyTypeEnum;
+  value?: T;
 }

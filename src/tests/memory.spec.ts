@@ -7,9 +7,10 @@ import {
   IHttpAdapter,
 } from "@anyres/core";
 import { Observable, of as observableOf } from "rxjs";
+import { CacheStore } from "../cache-store";
 import { Cache, CustomCache } from "../decorators";
 import { ICache } from "../interfaces";
-import { CacheStore, MemoryStore } from "../stores";
+import { MemoryStore } from "../stores";
 
 class MockHttpAdapter implements IHttpAdapter {
   public get(url: string, options?: IAnyresRequestOptions): Observable<IAnyresResponse> {

@@ -8,9 +8,9 @@ import {
 } from "@anyres/core";
 import * as localForage from "localforage";
 import { Observable, of as observableOf } from "rxjs";
+import { CacheStore } from "../cache-store";
 import { Cache, CustomCache } from "../decorators";
 import { ICache } from "../interfaces";
-import { CacheStore } from "../stores";
 
 class MockHttpAdapter implements IHttpAdapter {
   public get(url: string, options?: IAnyresRequestOptions): Observable<IAnyresResponse> {
