@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/cache
+    working_directory: ~/core-cache
     docker:
       - image: circleci/node:latest-browsers
     steps:
